@@ -1,0 +1,32 @@
+- name: clean-dev-tags
+  # Optional
+  description: Clean dev tags every 24 hours
+  # List of repositories to clean
+  repositories:
+    - dependency-scanner-dev
+    - scheduler-dev
+    - admin-panel-dev
+  # Pythonic regular expressions to match the tag name
+  # Be careful using this. Check your regexp at https://regex101.com/
+  tag_regexps:
+    - v5\.\d+\.\d+-dev$
+    - develop-[\d\w]+$
+  # Do not delete the last n tags, even
+  # if they are older than the specified number of days
+  save_last: 5
+  # Perform checks and do cleanup every x hours
+  clean_every_n_hours: 24
+  # Delete tags if their creation date is older than y days
+  older_than_days: 5
+
+- name: clean-production-tags
+  description: Clean production tags every 48 hours
+  repositories:
+    - dependency-scanner
+    - scheduler
+    - admin-panel
+  tag_regexps:
+    - v\d+\.\d+\.\d+$
+  save_last: 15
+  clean_every_n_hours: 48
+  older_than_days: 30

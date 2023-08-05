@@ -1,0 +1,14 @@
+# Your docker registry url. 
+registry_url: https://your.registry.com/
+# Environment variables works only for username, password and proxy
+# Format: <field>: "__ENV: <YOUR_ENV_NAME>"
+# or you can use just strings
+# Format username: your_username
+username: "__ENV: ENV_VAR_NAME"
+password: "__ENV: ENV_VAR_NAME2"
+# Optional; Format: <scheme>://[username:password@]<address>[:port]
+proxy: "__ENV: PROXY"
+# Optional, default 20, max 120, min 1
+timeout: 20
+# Optional; default 20
+max_concurrent_requests: 20

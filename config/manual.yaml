@@ -1,0 +1,24 @@
+# Configuration excluded from automatic cleanup. Run with --manual
+
+- name: manual-prod-cleanup
+  # Optional
+  description: Manually cleanup images
+  # List of repositories to clean
+  repositories:
+    - dependency-scanner
+    - scheduler
+    - admin-panel
+  # Delete the tag if it matches any of the provided strings
+  # Be careful using this. It may delete every provided tag except last `save_last` tags
+  # Optional
+  tags:
+    - develop
+  # Pythonic regular expressions to match the tag name
+  # Be careful using this. Check your regexp at https://regex101.com/
+  tag_regexps:
+    - v\d+\.\d+\.\d+$
+  # Do not delete the last n tags, even
+  # if they are older than the specified number of days
+  save_last: 20
+  # Delete tags if their creation date is older than y days
+  older_than_days: 10
