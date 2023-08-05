@@ -1,13 +1,13 @@
 # simple-reg-cleaner
 
-Simple Docker registry cleaner written in Python
+Simple Docker Registry Cleaner written in Python
 
 ## Features
 
-* Asynchronous and fast: Utilizes asyncio for efficient concurrent processing, ensuring speedy cleanup of Docker images.
+* Asynchronous and fast: Leverages asyncio for efficient concurrent processing, ensuring quick cleanup of Docker images.
 * Proxy support: Built-in HTTPS proxy support for seamless communication with remote container registries.
-* Manual and automatic mode: Offers flexibility with manual job selection or automated periodic cleanup.
-* Based on periodic jobs: Customizable cleanup strategies through scheduled repository scans.
+* Manual and Automatic Mode: Provides flexibility with manual job selection or automated periodic cleanup.
+* Based on periodic jobs: Customisable cleanup strategies through scheduled repository scans.
 
 ## Limitations
 
@@ -17,15 +17,15 @@ Simple Docker registry cleaner written in Python
 
 ## Introduction
 
-The Docker Registry Cleaner is a command-line application designed to automatically clean up old docker images from a Docker registry. It provides a flexible and configurable way to define cleanup jobs based on various criteria.
+The Docker Registry Cleaner is a command line application designed to automatically clean old Docker images from a Docker registry. It provides a flexible and configurable way to define cleanup jobs based on various criteria.
 
 ## Installation
 
-The Docker Registry Cleaner can be installed and run using Python 3.11 or higher. Follow these steps to install and run the application:
+The Docker Registry Cleaner can be installed and run using Python 3.11 or higher. Follow the steps below to install and run the application:
 
 1. Clone the repository or download the source code from the GitHub repository.
 
-2. Install the required dependencies by running the following command or just use `Pipenv` tool:
+2. Install the required dependencies by running the following command or simply use the `Pipenv` tool:
 
     ```text
     pip install -r requirements.txt
@@ -40,7 +40,7 @@ The Docker Registry Cleaner can be installed and run using Python 3.11 or higher
 ## Configuration
 
 The Docker Registry Cleaner requires 3 configuration files: `config/config.yaml`, `config/jobs.yaml` and `config/manual.yaml`.  
-You can find examples in repository
+Examples can be found in the repository
 
 ### config.yaml
 
@@ -101,22 +101,22 @@ A list of cleanup jobs defined in `jobs.yaml`. Each job is defined by the follow
 * `name`: The name of the job.
 * `description`: An optional description of the job.
 * `repositories`: String array of repository names to clean up images from.
-* `tag_regexps`: String array of regular expressions to match tags in the repositories. Only tags that match these regex patterns will be considered for cleanup. Be careful using this option. Check your regexp at https://regex101.com/
-* `save_last`: The number of the most recent tags to be saved (excluded from cleanup) in each repository.
-* `clean_every_n_hours`: The interval in hours between consecutive cleanup runs for this job.
-* `older_than_days`: The age in days beyond which tags will be considered for cleanup.
+* `tag_regexps`: String array of regular expressions to match tags in the repositories. Only tags matching these regex patterns will be considered for cleanup. Be careful when you use this option. Check your regexp at https://regex101.com/
+* `save_last`: The number of the last tags to be saved (excluded from cleanup) in each repository.
+* `clean_every_n_hours`: The interval in hours between successive cleanup runs for this job.
+* `older_than_days`: The age in days after which tags will be considered for cleanup.
 
 ### manual.yaml
 
 Differences from `jobs.yaml`:
 
-* The field clean_every_n_hours is not required as it will always be set to 0.
-* This file is used exclusively with the `--jobs` option, allowing you to specify jobs declared in `manual.yaml`.
-* There is no need to wait until the next run; the next cleanup can be performed immediately after the previous one.
+* The clean_every_n_hours field is not required as it is always set to 0.
+* This file is only used with the `--jobs` option, which allows you to specify jobs declared in `manual.yaml`.
+* There is no need to wait for the next run; the next cleanup can be run immediately after the previous one.
 
 ## Usage
 
-To run the Docker Registry Cleaner, use the following command:
+Use the following command to run the Docker Registry Cleaner:
 
 ```text
 python main.py [OPTIONS]
@@ -149,21 +149,21 @@ The Docker Registry Cleaner accepts the following options:
 
 ### Debug Mode
 
-If you have used the application with the `--debug` option and need to immediately trigger the cleanup process, you might need to clean the `latest_cleanup.json` file or delete a specific section with the job result you are interested in. Performing this step enables you to trigger the next cleanup immediately without waiting for the next automatic cleanup cycle.
+If you have been using the application with the `--debug` option and need to trigger the cleanup process immediately, you may need to clean up the `latest_cleanup.json` file or delete a specific section containing the job result you are interested in. Performing this step will allow you to trigger the next cleanup immediately, without having to wait for the next automatic cleanup cycle.
 
-After running the application with the `--debug` mode, you need to stop the application using `Ctrl + C` and then restart it without the `--debug` option to resume the normal cleanup process.
+After running the application in `--debug` mode, you must stop the application with `Ctrl + C` and then restart it without the `--debug` option to resume the normal cleanup process.
 
 ### Logs and cache files
 
-* App logs stored in `logs/cleaner.log`
-* Every performed check and runs with timestamps in `cache/history.log`
-* Every latest cleanup info about jobs and deleted images in `cache/latest_cleanup.json`
+* Application logs stored in `logs/cleaner.log`
+* Each check and run performed with timestamps in `cache/history.log`
+* All latest cleanup information about jobs and deleted images in `cache/latest_cleanup.json`
 
 ## Docker Image Options
 
-This repository includes two Dockerfiles located in the root directory: `Dockerfile` based on Alpine Linux and `Dockerfile.bullseye` based on Debian 11.
+This repository contains two Dockerfiles located in the root directory: `Dockerfile` based on Alpine Linux and `Dockerfile.bullseye` based on Debian 11.
 
-Both Docker containers are designed to execute the same command: `python3 main.py --watch --http-logs`, which initiates the cleanup process in an infinite loop. Once you start the container, it will continue running indefinitely, requiring no further intervention. This setup ensures a hassle-free and continuous Docker images cleanup process.
+Both Docker containers are designed to run the same command: `python3 main.py --watch --http-logs`, which starts the cleanup process in an infinite loop. Once started, the container will continue to run indefinitely without any further intervention. This setup ensures a smooth and continuous cleanup process for Docker images.
 
 ### Build
 
@@ -181,7 +181,7 @@ docker build -t cleaner:debian -f Dockerfile.bullseye .
 
 ### Run
 
-To run the Docker Registry Cleaner, you need to provide the required environment variables for authentication and, if necessary, mount fresh configuration files inside the container:
+To run the Docker Registry Cleaner, you will need to provide the necessary environment variables for authentication and, if necessary, mount fresh configuration files inside the container:
 
 ```text
 docker run \                   
