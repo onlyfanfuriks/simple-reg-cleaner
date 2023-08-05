@@ -18,7 +18,7 @@ async def perform_cleanup(config: Config) -> None:
             continue
         started = f"Started job '{job.name}'"
         await write_history(started, config)
-        logging.warning(started)
+        logging.info(started)
         tasks.append(asyncio.create_task(cleanup_registry(job, config)))
 
     for completed_task in asyncio.as_completed(tasks):
@@ -26,7 +26,7 @@ async def perform_cleanup(config: Config) -> None:
         await update_latest_cleanup(res, config)
         finish = f"Finished '{res.job_name}' with {len(res.errors)} errors"
         await write_history(finish, config)
-        logging.warning(finish)
+        logging.info(finish)
 
 
 async def main(config) -> None:
