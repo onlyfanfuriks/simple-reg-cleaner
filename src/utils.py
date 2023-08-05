@@ -118,7 +118,7 @@ def build_headers(config: Config) -> dict[str, str]:
     ).decode()
     return {
         "Accept": "application/vnd.docker.distribution.manifest.v2+json",
-        "User-Agent": "ScanFactory registry cleaner",
+        "User-Agent": "Registry cleaner",
         "Docker-Distribution-API-Version": "registry/2.0",
         "Authorization": f"Basic {basic_auth}",
     }
