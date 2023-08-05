@@ -1,0 +1,13 @@
+{
+    "clean-dev-tags": {
+        "job_name": "clean-dev-tags",
+        "started_at": "1990-08-04 16:21:25.881847+00:00",
+        "finished_at": "1990-08-04 16:21:28.720669+00:00",
+        "success": true,
+        "errors": [],
+        "found_tags": [
+        ],
+        "found_tags_count": 0,
+        "repo_stats": []
+    }
+}
