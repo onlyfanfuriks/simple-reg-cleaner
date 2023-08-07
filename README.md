@@ -106,6 +106,10 @@ A list of cleanup jobs defined in `jobs.yaml`. Each job is defined by the follow
 * `clean_every_n_hours`: The interval in hours between successive cleanup runs for this job.
 * `older_than_days`: The age in days after which tags will be considered for cleanup.
 
+#### Note
+
+Tags are grouped by regular expressions, with each regular expression representing a different group. If you need to save the last 5 tags for both `release-xx-dev` and `release-xx` independently, but your regular expression can match both types of tags, you will end up with a mixed array containing 5 both `release-xx-dev` and `release-xx` tags. To prevent this situation, you need to add two different regular expressions to match `release-xx` and `release-xx-dev` independently.
+
 ### manual.yaml
 
 Differences from `jobs.yaml`:
