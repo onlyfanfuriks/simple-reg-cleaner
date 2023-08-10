@@ -153,7 +153,6 @@ async def delete_tag(session: httpx.AsyncClient, tag: Tag, config: Config) -> li
     try:
         response = await session.delete(
             f"{config.registry_url}/{tag.repository}/manifests/{tag.deletion_hash}",
-            params={"force": "true"},
         )
         response.raise_for_status()
         return []
