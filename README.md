@@ -1,6 +1,6 @@
 # simple-reg-cleaner
 
-Simple Docker Registry Cleaner written in Python that uses the [Docker Registry UI](https://github.com/Joxit/docker-registry-ui) V2 API.
+Simple Docker Registry Cleaner written in Python that uses the Docker Registry HTTP API V2.
 
 ## Features
 
@@ -14,6 +14,8 @@ Simple Docker Registry Cleaner written in Python that uses the [Docker Registry 
 * No built-in support for detailed reports yet.
 * No notification system for cleanup events.
 * Lacks OS signal handling for graceful shutdowns.
+* Lack of support for regular expressions for repository names.
+* Deleting tags containing shared layers is not prevented.
 
 ## Introduction
 
