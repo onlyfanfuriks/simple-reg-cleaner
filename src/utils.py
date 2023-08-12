@@ -6,11 +6,12 @@ from datetime import datetime, timedelta, timezone
 from enum import StrEnum
 from logging import LogRecord
 from pathlib import Path
+import re
 
 from pydantic import ValidationError
 
 from src.config import LOG_FORMAT, Config, Job
-from src.models import CleanupResult, RepositoryInfo, Tag
+from src.models import CleanupResult, RepositoryInfo, Tag, WorkMode
 
 
 class Colors(StrEnum):
@@ -96,6 +97,8 @@ def is_job_ready(job: Job, config: Config) -> tuple[bool, str]:
                 if not last_scan:
                     return True, ""
                 report = CleanupResult(**last_scan)
+                if report.mode == WorkMode.MANUAL:
+                    return True, ""
             if not report:
                 return True, ""
         except (json.decoder.JSONDecodeError, IndexError):
@@ -167,6 +170,23 @@ def exclude_tags(job: Job, tags_all: list[Tag]) -> tuple[list[Tag], list[Tag]]:
         all_to_save.extend([tag for tag in tags if tag not in to_delete])
 
     return all_to_delete, all_to_save
+
+
+def unfold_repository_regexps(all_repositories: list[str], job: Job) -> None:
+    found_repos: list[str] = []
+    for repository in job.repositories:
+        rule = repository
+        if rule.startswith("r/") and rule.endswith("/"):
+            rule = re.compile(rule.replace("r/", "").replace("/", ""))
+            for repository in all_repositories:
+                if rule.match(repository):
+                    found_repos.append(repository)
+            continue
+
+        if rule in all_repositories:
+            found_repos.append(rule)
+    logging.info(f"Found repositories: {' '.join(found_repos)}")
+    job.repositories = set(found_repos)
 
 
 def make_repo_stats(

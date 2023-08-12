@@ -1,6 +1,12 @@
 from datetime import datetime
 
 from pydantic import BaseModel
+from enum import StrEnum
+
+
+class WorkMode(StrEnum):
+    AUTO = "auto"
+    MANUAL = "manual"
 
 
 class RepositoryInfo(BaseModel):
@@ -14,6 +20,7 @@ class RepositoryInfo(BaseModel):
 
 class CleanupResult(BaseModel):
     job_name: str
+    mode: WorkMode
     started_at: datetime
     finished_at: datetime
     success: bool

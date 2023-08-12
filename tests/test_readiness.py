@@ -107,6 +107,7 @@ def test_is_job_ready_with_recent_last_scan():
             "found_tags_count": 0,
             "repo_stats": [],
             "errors": [],
+            "mode": "auto",
         }
     }
     with open(config.files.last_clean, "w") as f:
@@ -117,4 +118,23 @@ def test_is_job_ready_with_recent_last_scan():
     assert is_ready is False
     assert next_scan != ""
 
-    config.args = Args(debug=True, watch=False, jobs=[job.name], http_logs=False)
+    last_scans = {
+        "test_job": {
+            "job_name": "test_job",
+            "finished_at": str(true_utcnow() - timedelta(hours=6)),
+            "started_at": str(true_utcnow() - timedelta(hours=6)),
+            "success": True,
+            "found_tags": [],
+            "found_tags_count": 0,
+            "repo_stats": [],
+            "errors": [],
+            "mode": "manual",
+        }
+    }
+    with open(config.files.last_clean, "w") as f:
+        json.dump(last_scans, f)
+
+    is_ready, next_scan = is_job_ready(job, config)
+
+    assert is_ready is True
+    assert next_scan == ""

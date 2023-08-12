@@ -14,7 +14,6 @@ Simple Docker Registry Cleaner written in Python that uses the Docker Registry H
 * No built-in support for detailed reports yet.
 * No notification system for cleanup events.
 * Lacks OS signal handling for graceful shutdowns.
-* Lack of support for regular expressions for repository names.
 * Deleting tags containing shared layers is not prevented.
 
 ## Introduction
@@ -80,10 +79,12 @@ A list of cleanup jobs defined in `jobs.yaml`. Each job is defined by the follow
 ```yaml
 - name: clean-dev-tags
   # Optional
-  description: Clean dev tags every 72 hours
+  description: Clean dev tags every 24 hours
   # List of repositories to clean
+  # You can use regular expression to match multiple repositories
+  # Format: r/regexp/
   repositories:
-    - dependency-scanner-dev
+    - r/^base-\w+$/
     - scheduler-dev
     - admin-panel-dev
   # Pythonic regular expressions to match the tag name
@@ -102,7 +103,7 @@ A list of cleanup jobs defined in `jobs.yaml`. Each job is defined by the follow
 
 * `name`: The name of the job.
 * `description`: An optional description of the job.
-* `repositories`: String array of repository names to clean up images from.
+* `repositories`: String array of repository name regexps and names to clean up images from.
 * `tag_regexps`: String array of regular expressions to match tags in the repositories. Only tags matching these regex patterns will be considered for cleanup. Be careful when you use this option. Check your regexp at https://regex101.com/
 * `save_last`: The number of the last tags to be saved (excluded from cleanup) in each repository.
 * `clean_every_n_hours`: The interval in hours between successive cleanup runs for this job.

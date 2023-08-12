@@ -5,19 +5,37 @@ import dateutil.parser
 import httpx
 
 from src.config import Config, Job
-from src.models import CleanupResult, Tag
+from src.models import CleanupResult, Tag, WorkMode
 from src.utils import (
     build_headers,
     exclude_tags,
     filtered_tags,
     make_repo_stats,
     true_utcnow,
+    unfold_repository_regexps,
 )
+
+
+async def list_repositories(
+    session: httpx.AsyncClient, config: Config
+) -> tuple[list[str], str | None]:
+    try:
+        response = await session.get(f"{config.registry_url}/_catalog")
+        response.raise_for_status()
+        return response.json()["repositories"], None
+    except httpx.HTTPStatusError as err:
+        error = f"Error listing repositories. code: {err.response.status_code}, text: {err.response.text}"
+        logging.critical(error)
+        return [], error
+    except Exception as err:
+        error = f"Error listing repositories: {err}"
+        logging.critical(error)
+        return [], error
 
 
 async def get_tags(
     session: httpx.AsyncClient, repository: str, config: Config
-) -> tuple[list[Tag], list[str]]:
+) -> tuple[list[Tag], str | None]:
     try:
         response = await session.get(f"{config.registry_url}/{repository}/tags/list")
         response.raise_for_status()
@@ -27,15 +45,15 @@ async def get_tags(
         ]
         if not tags:
             logging.warning(f"No tags found for {repository}")
-        return tags, []
+        return tags, None
     except httpx.HTTPStatusError as err:
         error = f"Error getting tags for {repository}. code: {err.response.status_code}, text: {err.response.text}"
         logging.critical(error)
-        return [], [error]
+        return [], error
     except Exception as err:
         error = f"Error getting tags for {repository}. Error: {err}"
     logging.critical(error)
-    return [], [error]
+    return [], error
 
 
 async def tags_for_all_repos(
@@ -51,8 +69,9 @@ async def tags_for_all_repos(
         ]
 
         for task in asyncio.as_completed(all_tasks):
-            tags, errors = await task
-            errors_total.extend(errors)
+            tags, error = await task
+            if error:
+                errors_total.append(error)
             if tags:
                 found_tags.extend(filtered_tags(job, tags))
 
@@ -61,7 +80,7 @@ async def tags_for_all_repos(
 
 async def update_hashes(
     session: httpx.AsyncClient, tag: Tag, config: Config
-) -> list[str]:
+) -> str | None:
     response = await session.get(
         f"{config.registry_url}/{tag.repository}/manifests/{tag.name}"
     )
@@ -71,7 +90,7 @@ async def update_hashes(
             f"code: {response.status_code}. text: {response.text}"
         )
         logging.error(error)
-        return [error]
+        return error
     deletion_hash = response.headers.get("Docker-Content-Digest", None)
     config_hash = (response.json()).get("config", {}).get("digest", None)
     if not deletion_hash or not config_hash:
@@ -80,11 +99,11 @@ async def update_hashes(
             f"Invalid response: {response.json()}"
         )
         logging.error(error)
-        return [error]
+        return error
 
     tag.deletion_hash = deletion_hash
     tag.config_hash = config_hash
-    return []
+    return None
 
 
 async def update_all_hashes(
@@ -94,20 +113,21 @@ async def update_all_hashes(
     config: Config,
 ) -> list[str]:
     errors_total = []
-    tag_details_tasks: list[asyncio.Task[list[str]]] = []
+    tag_details_tasks: list[asyncio.Task[str | None]] = []
     async with limiter:
         for tag in tags:
             tag_details_tasks.append(
                 asyncio.create_task(update_hashes(session, tag, config))
             )
         for completed_task in asyncio.as_completed(tag_details_tasks):
-            errors_total.extend(await completed_task)
+            if err := await completed_task:
+                errors_total.append(err)
     return errors_total
 
 
 async def update_timestamp(
     session: httpx.AsyncClient, tag: Tag, config: Config
-) -> list[str]:
+) -> str | None:
     response = await session.get(
         f"{config.registry_url}/{tag.repository}/blobs/{tag.config_hash}"
     )
@@ -117,7 +137,7 @@ async def update_timestamp(
             f"code: {response.status_code}. text: {response.text}"
         )
         logging.error(error)
-        return [error]
+        return error
     data = response.json()
     created = data.get("created")
     if not created:
@@ -126,9 +146,9 @@ async def update_timestamp(
             f"Invalid response: {data}"
         )
         logging.error(error)
-        return [error]
+        return error
     tag.creation_date = dateutil.parser.parse(created)
-    return []
+    return None
 
 
 async def update_all_timestamps(
@@ -138,35 +158,38 @@ async def update_all_timestamps(
     config: Config,
 ) -> list[str]:
     errors_total = []
-    tag_details_tasks: list[asyncio.Task[list[str]]] = []
+    tag_details_tasks: list[asyncio.Task[str | None]] = []
     async with limiter:
         for tag in tags:
             tag_details_tasks.append(
                 asyncio.create_task(update_timestamp(session, tag, config))
             )
         for completed_task in asyncio.as_completed(tag_details_tasks):
-            errors_total.extend(await completed_task)
+            if err := await completed_task:
+                errors_total.append(err)
     return errors_total
 
 
-async def delete_tag(session: httpx.AsyncClient, tag: Tag, config: Config) -> list[str]:
+async def delete_tag(
+    session: httpx.AsyncClient, tag: Tag, config: Config
+) -> str | None:
     try:
         response = await session.delete(
             f"{config.registry_url}/{tag.repository}/manifests/{tag.deletion_hash}",
         )
         response.raise_for_status()
-        return []
+        return None
     except httpx.HTTPStatusError as err:
         error = (
             f"Error deleting {tag.repository}:{tag.name}. "
             f"code: {err.response.status_code}, text: {err.response.text}"
         )
         logging.error(error)
-        return [error]
+        return error
     except Exception as err:
         error = f"Error deleting {tag.repository}:{tag.name}. {err}"
         logging.error(error)
-        return [error]
+        return error
 
 
 async def delete_all_tags(
@@ -176,14 +199,15 @@ async def delete_all_tags(
     config: Config,
 ) -> list[str]:
     errors_total = []
-    tag_deletion_tasks: list[asyncio.Task[list[str]]] = []
+    tag_deletion_tasks: list[asyncio.Task[str | None]] = []
     async with limiter:
         for tag in tags:
             tag_deletion_tasks.append(
                 asyncio.create_task(delete_tag(session, tag, config))
             )
         for completed_task in asyncio.as_completed(tag_deletion_tasks):
-            errors_total.extend(await completed_task)
+            if err := await completed_task:
+                errors_total.append(err)
     return errors_total
 
 
@@ -208,9 +232,14 @@ async def cleanup_registry(job: Job, config: Config) -> CleanupResult:
             trust_env=False,
         ) as session:
             limiter = asyncio.Semaphore(max_concurrent_requests)
-            found_tags, errors_total = await tags_for_all_repos(
-                session, job, limiter, config
-            )
+
+            all_available_repos, err = await list_repositories(session, config)
+            errors_total = [err] if err else []
+
+            unfold_repository_regexps(all_available_repos, job)
+
+            found_tags, errors = await tags_for_all_repos(session, job, limiter, config)
+            errors_total.extend(errors)
 
             if not found_tags and errors_total:
                 success = False
@@ -240,6 +269,7 @@ async def cleanup_registry(job: Job, config: Config) -> CleanupResult:
 
         return CleanupResult(
             job_name=job.name,
+            mode=WorkMode.AUTO if config.args.watch else WorkMode.MANUAL,
             started_at=started_at,
             finished_at=true_utcnow(),
             errors=errors_total,
