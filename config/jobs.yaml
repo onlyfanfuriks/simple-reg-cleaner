@@ -2,8 +2,10 @@
   # Optional
   description: Clean dev tags every 24 hours
   # List of repositories to clean
+  # You can use regular expression to match multiple repositories
+  # Format: r/regexp/
   repositories:
-    - dependency-scanner-dev
+    - r/^base-\w+$/
     - scheduler-dev
     - admin-panel-dev
   # Pythonic regular expressions to match the tag name
