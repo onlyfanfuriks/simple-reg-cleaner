@@ -4,7 +4,13 @@ import logging
 from src.cleaner import cleanup_registry
 from src.config import Args, Config, load_config
 from src.models import CleanupResult
-from src.utils import check_job_names, init_logger, is_job_ready, update_latest_cleanup, write_history
+from src.utils import (
+    check_job_names,
+    init_logger,
+    is_job_ready,
+    update_latest_cleanup,
+    write_history,
+)
 
 
 async def perform_cleanup(config: Config) -> None:

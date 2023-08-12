@@ -198,6 +198,7 @@ def check_job_names(config: Config) -> None:
         logging.critical("Job names must be unique")
         sys.exit(1)
 
+
 def make_repo_stats(
     repository: str, to_delete: list[Tag], to_save: list[Tag]
 ) -> RepositoryInfo:
