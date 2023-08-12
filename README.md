@@ -13,7 +13,6 @@ Simple Docker Registry Cleaner written in Python that uses the Docker Registry H
 
 * No built-in support for detailed reports yet.
 * No notification system for cleanup events.
-* Lacks OS signal handling for graceful shutdowns.
 * Deleting tags containing shared layers is not prevented.
 
 ## Introduction
