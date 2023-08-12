@@ -4,7 +4,7 @@ import logging
 from src.cleaner import cleanup_registry
 from src.config import Args, Config, load_config
 from src.models import CleanupResult
-from src.utils import init_logger, is_job_ready, update_latest_cleanup, write_history
+from src.utils import check_job_names, init_logger, is_job_ready, update_latest_cleanup, write_history
 
 
 async def perform_cleanup(config: Config) -> None:
@@ -39,6 +39,7 @@ if __name__ == "__main__":
     args = Args.from_args()
     config = load_config(args)
     init_logger(config)
+    check_job_names(config)
     if config.args.debug:
         logging.warning("Running in debug mode, found tags will not be deleted")
     loop = asyncio.get_event_loop()
