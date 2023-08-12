@@ -12,6 +12,7 @@ from pydantic import ValidationError
 
 from src.config import LOG_FORMAT, Config, Job
 from src.models import CleanupResult, RepositoryInfo, Tag, WorkMode
+import sys
 
 
 class Colors(StrEnum):
@@ -187,6 +188,15 @@ def unfold_repository_regexps(all_repositories: list[str], job: Job) -> None:
             found_repos.append(rule)
     logging.info(f"Found repositories: {' '.join(found_repos)}")
     job.repositories = set(found_repos)
+
+
+def check_job_names(config: Config) -> None:
+    names = []
+    for job in config.jobs:
+        names.append(job.name)
+    if list(set(names)) != [job.name for job in config.jobs]:
+        logging.critical("Job names must be unique")
+        sys.exit(1)
 
 
 def make_repo_stats(
